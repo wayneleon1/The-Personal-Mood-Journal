@@ -16,6 +16,48 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Dark / Light mode toggle -->
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      aria-label="Toggle dark mode"
+      title="Toggle dark / light mode"
+    >
+      <span class="theme-icon theme-icon--sun" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+          />
+        </svg>
+      </span>
+      <span class="theme-icon theme-icon--moon" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        </svg>
+      </span>
+    </button>
+
     <div class="container">
       <header>
         <div class="header-deco" aria-hidden="true">
@@ -122,7 +164,7 @@
               </div>
             </div>
 
-            <!-- Hidden select kept for JS compatibility with ui.ts -->
+            <!-- Hidden select for ui.ts compatibility -->
             <select
               id="mood"
               name="mood-legacy"
@@ -161,7 +203,7 @@
             </div>
           </div>
 
-          <!-- Hidden select for JS bindFilterChange compatibility -->
+          <!-- Hidden select for bindFilterChange compatibility -->
           <select
             id="filter-mood"
             style="display: none"
@@ -197,41 +239,6 @@
     <script type="module">
       import { init } from "/dist/journal.js";
       init();
-
-      // Sync radio mood picker → hidden select (for ui.ts getFormData compatibility)
-      document.querySelectorAll('input[name="mood"]').forEach((radio) => {
-        radio.addEventListener("change", () => {
-          document.getElementById("mood").value = radio.value;
-        });
-      });
-
-      // Filter chips → hidden select
-      const chips = document.querySelectorAll(".chip");
-      const filterSelect = document.getElementById("filter-mood");
-
-      chips.forEach((chip) => {
-        chip.addEventListener("click", () => {
-          chips.forEach((c) => c.classList.remove("chip--active"));
-          chip.classList.add("chip--active");
-          filterSelect.value = chip.dataset.mood;
-          filterSelect.dispatchEvent(new Event("change"));
-        });
-      });
-
-      // Toast helper
-      window.showToast = (msg, type = "success") => {
-        const toast = document.getElementById("toast");
-        toast.textContent = msg;
-        toast.className = `toast toast--${type} toast--show`;
-        setTimeout(() => {
-          toast.className = "toast";
-        }, 2800);
-      };
-
-      // Show toast on save
-      document.getElementById("entry-form").addEventListener("submit", () => {
-        setTimeout(() => window.showToast("Entry saved ✓"), 100);
-      });
     </script>
   </body>
 </html>

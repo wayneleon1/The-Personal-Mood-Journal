@@ -1,12 +1,8 @@
-/* =============================================
-   PERSONAL MOOD JOURNAL — Clean Blue & White
-   Aesthetic: Crisp Editorial / Modern Clarity
-   ============================================= */
-
 @import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap");
 
-/* --- Tokens --- */
-:root {
+/* --- Light mode  (default) --- */
+:root,
+[data-theme="light"] {
   --white: #ffffff;
   --off-white: #f7f9fc;
   --surface: #eef3fa;
@@ -19,7 +15,6 @@
   --blue-500: #3b82f6;
   --blue-600: #2563eb;
   --blue-700: #1d4ed8;
-  --blue-900: #1e3a5f;
   --navy: #0f2444;
 
   --text-primary: #0f172a;
@@ -28,7 +23,6 @@
   --text-faint: #94a3b8;
   --border: #e2eaf5;
 
-  /* Mood palettes */
   --happy-bg: #fefce8;
   --happy-border: #eab308;
   --happy-text: #713f12;
@@ -50,11 +44,6 @@
   --str-text: #7c2d12;
   --str-badge: #fed7aa;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-
   --shadow-xs: 0 1px 3px rgba(15, 36, 68, 0.06);
   --shadow-sm:
     0 2px 8px rgba(15, 36, 68, 0.08), 0 1px 2px rgba(15, 36, 68, 0.04);
@@ -64,11 +53,76 @@
     0 16px 48px rgba(15, 36, 68, 0.14), 0 4px 12px rgba(15, 36, 68, 0.08);
   --shadow-blue: 0 4px 20px rgba(37, 99, 235, 0.22);
 
-  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --t: 200ms;
+  /* Toggle button appearance */
+  --toggle-bg: #e8f0fe;
+  --toggle-color: var(--blue-700);
+  --toggle-border: var(--blue-200);
+  --toggle-hover: var(--blue-100);
+
+  /* Which icon shows */
+  --sun-display: flex;
+  --moon-display: none;
 }
 
+/* --- Dark mode tokens --- */
+[data-theme="dark"] {
+  --white: #0d1b2e;
+  --off-white: #091525;
+  --surface: #13243a;
+  --navy: #e2eaf8;
+
+  --blue-50: #0d1f38;
+  --blue-100: #172d4a;
+  --blue-200: #1e3d64;
+  --blue-300: #2a5080;
+  --blue-400: #3b82f6;
+  --blue-500: #60a5fa;
+  --blue-600: #3b82f6;
+  --blue-700: #60a5fa;
+
+  --text-primary: #dde8f8;
+  --text-secondary: #8ba3c7;
+  --text-muted: #6b84a3;
+  --text-faint: #3a5070;
+  --border: #1a2f4a;
+
+  --happy-bg: #1a1700;
+  --happy-border: #a16207;
+  --happy-text: #fef08a;
+  --happy-badge: #422006;
+  --calm-bg: #0d1f38;
+  --calm-border: #2563eb;
+  --calm-text: #93c5fd;
+  --calm-badge: #172d4a;
+  --mot-bg: #052e16;
+  --mot-border: #16a34a;
+  --mot-text: #86efac;
+  --mot-badge: #14532d;
+  --sad-bg: #0f172a;
+  --sad-border: #475569;
+  --sad-text: #94a3b8;
+  --sad-badge: #1e293b;
+  --str-bg: #1c0f00;
+  --str-border: #c2410c;
+  --str-text: #fdba74;
+  --str-badge: #431407;
+
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-blue: 0 4px 20px rgba(59, 130, 246, 0.25);
+
+  --toggle-bg: #1e3050;
+  --toggle-color: #93c5fd;
+  --toggle-border: #2a4070;
+  --toggle-hover: #172d4a;
+
+  --sun-display: none;
+  --moon-display: flex;
+}
+
+/* --- Reset --- */
 *,
 *::before,
 *::after {
@@ -88,9 +142,12 @@ body {
   min-height: 100vh;
   padding: 2rem 1rem 4rem;
   position: relative;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
-/* Grid dot background */
+/* Dot grid background */
 body::before {
   content: "";
   position: fixed;
@@ -104,6 +161,7 @@ body::before {
   background-size: 32px 32px;
   opacity: 0.35;
   z-index: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* Blue top bar */
@@ -123,6 +181,55 @@ body::after {
   z-index: 100;
 }
 
+/* --- Theme Toggle Button --- */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--toggle-border);
+  background: var(--toggle-bg);
+  color: var(--toggle-color);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--toggle-hover);
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:active {
+  transform: scale(0.96);
+}
+
+/* Show sun in light mode, moon in dark mode */
+.theme-icon {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.theme-icon--sun {
+  display: var(--sun-display);
+}
+.theme-icon--moon {
+  display: var(--moon-display);
+}
+
+/* --- Container --- */
 .container {
   max-width: 1160px;
   margin: 0 auto;
@@ -130,11 +237,11 @@ body::after {
   z-index: 1;
 }
 
-/* ---- Header ---- */
+/* --- Header --- */
 header {
   text-align: center;
   padding: 2.5rem 0 3rem;
-  animation: fadeDown 0.5s var(--ease) both;
+  animation: fadeDown 0.5s ease both;
 }
 
 .journal-label {
@@ -161,6 +268,7 @@ h1 {
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin-bottom: 0.6rem;
+  transition: color 0.3s ease;
 }
 
 h1 em {
@@ -187,6 +295,7 @@ h1 em {
   flex: 1;
   height: 1px;
   background: var(--blue-100);
+  transition: background 0.3s;
 }
 .deco-ornament {
   color: var(--blue-400);
@@ -196,7 +305,7 @@ h1 em {
   font-size: 0.6rem;
 }
 
-/* ---- Grid ---- */
+/* --- Grid --- */
 .app-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -211,26 +320,26 @@ h1 em {
   }
 }
 
-/* ---- Cards ---- */
+/* --- Cards --- */
 .card {
   background: var(--white);
-  border-radius: var(--radius-xl);
+  border-radius: 24px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
   padding: 2rem;
-  animation: fadeUp 0.5s var(--ease) both;
+  animation: fadeUp 0.5s ease both;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .card--form {
   animation-delay: 0.1s;
+  border-top: 3px solid var(--blue-500);
 }
 .card--entries {
   animation-delay: 0.18s;
-}
-
-/* Blue top accent on form card */
-.card--form {
-  border-top: 3px solid var(--blue-500);
 }
 
 .card h2 {
@@ -240,9 +349,10 @@ h1 em {
   color: var(--navy);
   margin-bottom: 1.5rem;
   letter-spacing: -0.01em;
+  transition: color 0.3s ease;
 }
 
-/* ---- Form ---- */
+/* --- Form --- */
 .form-group {
   margin-bottom: 1.125rem;
 }
@@ -255,6 +365,7 @@ label {
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 0.45rem;
+  transition: color 0.3s ease;
 }
 
 input[type="text"],
@@ -263,14 +374,15 @@ textarea {
   padding: 0.7rem 0.95rem;
   background: var(--off-white);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   font-family: "DM Sans", sans-serif;
   font-size: 0.9rem;
   color: var(--text-primary);
   transition:
-    border-color var(--t) var(--ease),
-    box-shadow var(--t) var(--ease),
-    background var(--t);
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.3s ease,
+    color 0.3s ease;
   resize: vertical;
 }
 
@@ -292,7 +404,7 @@ textarea {
   line-height: 1.65;
 }
 
-/* ---- Mood Picker ---- */
+/* --- Mood Picker --- */
 .mood-picker {
   display: flex;
   gap: 0.4rem;
@@ -312,11 +424,11 @@ textarea {
   align-items: center;
   gap: 0.2rem;
   padding: 0.55rem 0.45rem;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   border: 1.5px solid var(--border);
   background: var(--off-white);
   cursor: pointer;
-  transition: all var(--t) var(--ease);
+  transition: all 0.2s ease;
   flex: 1;
   min-width: 50px;
   user-select: none;
@@ -325,7 +437,7 @@ textarea {
 .mood-emoji {
   font-size: 1.4rem;
   line-height: 1;
-  transition: transform var(--t) var(--spring);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: block;
 }
 
@@ -335,7 +447,7 @@ textarea {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
-  transition: color var(--t);
+  transition: color 0.2s ease;
 }
 
 .mood-option:hover {
@@ -386,7 +498,7 @@ input[type="radio"]:focus-visible + .mood-option {
   outline-offset: 2px;
 }
 
-/* ---- Submit Button ---- */
+/* --- Submit Button --- */
 #submit-btn {
   display: flex;
   align-items: center;
@@ -396,15 +508,15 @@ input[type="radio"]:focus-visible + .mood-option {
   padding: 0.8rem 1.5rem;
   margin-top: 0.625rem;
   background: var(--blue-600);
-  color: var(--white);
+  color: #fff;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   font-family: "DM Sans", sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all var(--t) var(--ease);
+  transition: all 0.2s ease;
   box-shadow: var(--shadow-blue);
   position: relative;
   overflow: hidden;
@@ -441,7 +553,7 @@ input[type="radio"]:focus-visible + .mood-option {
   z-index: 1;
 }
 
-/* ---- Entries Header ---- */
+/* --- Entries Header --- */
 .entries-header {
   display: flex;
   align-items: flex-start;
@@ -481,7 +593,7 @@ input[type="radio"]:focus-visible + .mood-option {
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all var(--t) var(--ease);
+  transition: all 0.2s ease;
 }
 
 .chip:hover {
@@ -492,12 +604,12 @@ input[type="radio"]:focus-visible + .mood-option {
 
 .chip--active {
   background: var(--blue-600);
-  color: var(--white);
+  color: #fff;
   border-color: var(--blue-600);
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
 }
 
-/* ---- Entries ---- */
+/* --- Entries --- */
 .entries-container {
   display: flex;
   flex-direction: column;
@@ -506,16 +618,17 @@ input[type="radio"]:focus-visible + .mood-option {
 
 .entry {
   background: var(--white);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   padding: 1.125rem 1.125rem 0.875rem;
   border: 1px solid var(--border);
   border-left: 3px solid var(--blue-200);
   box-shadow: var(--shadow-xs);
   transition:
-    transform var(--t) var(--ease),
-    box-shadow var(--t),
-    border-left-color var(--t);
-  animation: entryIn 0.3s var(--ease) both;
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-left-color 0.2s ease,
+    background 0.3s ease;
+  animation: entryIn 0.3s ease both;
 }
 
 .entry:hover {
@@ -555,6 +668,7 @@ input[type="radio"]:focus-visible + .mood-option {
   color: var(--navy);
   word-break: break-word;
   line-height: 1.3;
+  transition: color 0.3s ease;
 }
 
 .mood-badge {
@@ -570,6 +684,9 @@ input[type="radio"]:focus-visible + .mood-option {
   white-space: nowrap;
   flex-shrink: 0;
   border: 1px solid transparent;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 .mood-badge.happy {
@@ -608,6 +725,7 @@ input[type="radio"]:focus-visible + .mood-option {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
 }
 
 .entry-footer {
@@ -619,6 +737,7 @@ input[type="radio"]:focus-visible + .mood-option {
   border-top: 1px solid var(--surface);
   flex-wrap: wrap;
   gap: 0.5rem;
+  transition: border-color 0.3s ease;
 }
 
 .entry-date {
@@ -636,12 +755,12 @@ input[type="radio"]:focus-visible + .mood-option {
   font-size: 0.72rem;
   font-weight: 500;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   background: var(--white);
   color: var(--text-muted);
   cursor: pointer;
   width: auto;
-  transition: all var(--t) var(--ease);
+  transition: all 0.2s ease;
 }
 
 .entry-footer button.edit-btn:hover {
@@ -660,7 +779,7 @@ input[type="radio"]:focus-visible + .mood-option {
   color: var(--str-text);
 }
 
-/* ---- Empty State ---- */
+/* --- Empty State --- */
 .entries-empty {
   text-align: center;
   padding: 3rem 1.5rem;
@@ -677,7 +796,7 @@ input[type="radio"]:focus-visible + .mood-option {
   color: var(--text-faint);
 }
 
-/* ---- Footer ---- */
+/* --- Footer --- */
 footer {
   text-align: center;
   margin-top: 3rem;
@@ -687,10 +806,10 @@ footer {
   gap: 0.4rem;
   color: var(--text-faint);
   font-size: 0.72rem;
-  animation: fadeUp 0.5s var(--ease) 0.3s both;
+  animation: fadeUp 0.5s ease 0.3s both;
 }
 
-/* ---- Toast ---- */
+/* --- Toast --- */
 .toast {
   position: fixed;
   bottom: 1.5rem;
@@ -702,12 +821,13 @@ footer {
   font-size: 0.82rem;
   font-weight: 500;
   padding: 0.6rem 1.2rem;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   box-shadow: var(--shadow-lg);
   z-index: 1000;
-  transition: transform 0.3s var(--spring);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
   pointer-events: none;
+  border: 1px solid var(--border);
 }
 
 .toast--show {
@@ -717,7 +837,7 @@ footer {
   background: #be123c;
 }
 
-/* ---- Animations ---- */
+/* --- Animations --- */
 @keyframes fadeDown {
   from {
     opacity: 0;
@@ -749,7 +869,7 @@ footer {
   }
 }
 
-/* ---- Responsive ---- */
+/* --- Responsive --- */
 @media (max-width: 600px) {
   body {
     padding: 1rem 0.75rem 3rem;
@@ -777,9 +897,13 @@ footer {
   .entry {
     padding: 1rem;
   }
+  .theme-toggle {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
 }
 
-/* ---- Accessibility ---- */
+/* --- Accessibility --- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -789,51 +913,31 @@ footer {
   }
 }
 
-/* ---- Dark Mode ---- */
+/* --- System dark mode  --- */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --white: #0d1b2e;
     --off-white: #091525;
     --surface: #13243a;
     --navy: #e2eaf8;
+    --blue-50: #0d1f38;
+    --blue-100: #172d4a;
+    --blue-200: #1e3d64;
+    --blue-300: #2a5080;
+    --blue-400: #3b82f6;
+    --blue-500: #60a5fa;
+    --blue-600: #3b82f6;
+    --blue-700: #60a5fa;
     --text-primary: #dde8f8;
     --text-secondary: #8ba3c7;
     --text-muted: #6b84a3;
     --text-faint: #3a5070;
     --border: #1a2f4a;
-    --blue-50: #0d1f38;
-    --blue-100: #172d4a;
-    --blue-200: #1e3d64;
-    --blue-600: #3b82f6;
-    --blue-700: #60a5fa;
-    --shadow-blue: 0 4px 20px rgba(59, 130, 246, 0.25);
-  }
-
-  body::before {
-    opacity: 0.12;
-  }
-  .card,
-  .entry {
-    background: #0f1e33;
-  }
-  input[type="text"],
-  textarea,
-  .mood-option,
-  .chip,
-  .entry-footer button {
-    background: var(--off-white);
-    border-color: var(--border);
-    color: var(--text-primary);
-  }
-  .chip--active {
-    background: var(--blue-600);
-    color: #fff;
-    border-color: var(--blue-600);
-  }
-  #submit-btn {
-    background: var(--blue-600);
-  }
-  #submit-btn:hover {
-    background: var(--blue-700);
+    --toggle-bg: #1e3050;
+    --toggle-color: #93c5fd;
+    --toggle-border: #2a4070;
+    --toggle-hover: #172d4a;
+    --sun-display: none;
+    --moon-display: flex;
   }
 }

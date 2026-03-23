@@ -1,7 +1,8 @@
 import type { JournalEntry } from "./types.js";
 import { Mood } from "./types.js";
 
-// DOM element references
+// DOM references
+
 const form = document.getElementById("entry-form") as HTMLFormElement;
 const titleInput = document.getElementById("title") as HTMLInputElement;
 const contentInput = document.getElementById("content") as HTMLTextAreaElement;
@@ -13,8 +14,57 @@ const emptyState = document.getElementById("entries-empty") as HTMLDivElement;
 const filterSelect = document.getElementById(
   "filter-mood",
 ) as HTMLSelectElement;
+const legacyMoodSelect = document.getElementById(
+  "mood",
+) as HTMLSelectElement | null;
+const toastEl = document.getElementById("toast") as HTMLDivElement;
 
-// --- Mood helpers (radio button picker) ---
+// Theme toggle
+
+export function initTheme(): void {
+  const root = document.documentElement;
+  const toggleBtn = document.getElementById(
+    "theme-toggle",
+  ) as HTMLButtonElement | null;
+
+  // Resolve initial theme: saved preference → system preference → light
+  const saved = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initial =
+    saved === "dark" || saved === "light"
+      ? saved
+      : prefersDark
+        ? "dark"
+        : "light";
+
+  root.setAttribute("data-theme", initial);
+
+  toggleBtn?.addEventListener("click", () => {
+    const isDark = root.getAttribute("data-theme") === "dark";
+    const next = isDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+  });
+}
+
+// Toast notifications
+
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function showToast(
+  msg: string,
+  type: "success" | "error" = "success",
+): void {
+  if (toastTimer) clearTimeout(toastTimer);
+  toastEl.textContent = msg;
+  toastEl.className = `toast toast--${type} toast--show`;
+  toastTimer = setTimeout(() => {
+    toastEl.className = "toast";
+    toastTimer = null;
+  }, 2800);
+}
+
+// Mood radio picker helpers
 
 function getMoodRadioValue(): Mood {
   const checked = form.querySelector<HTMLInputElement>(
@@ -24,30 +74,53 @@ function getMoodRadioValue(): Mood {
 }
 
 function setMoodRadioValue(mood: Mood): void {
-  const radio = form.querySelector<HTMLInputElement>(
+  // Explicitly uncheck all first — programmatic .checked = true doesn't
+  // automatically trigger the browser's radio-group deselection of siblings.
+  form.querySelectorAll<HTMLInputElement>('input[name="mood"]').forEach((r) => {
+    r.checked = false;
+  });
+
+  const target = form.querySelector<HTMLInputElement>(
     `input[name="mood"][value="${mood}"]`,
   );
-  if (radio) {
-    radio.checked = true;
-    // Keep the hidden select in sync for any legacy listeners
-    const legacySelect = document.getElementById(
-      "mood",
-    ) as HTMLSelectElement | null;
-    if (legacySelect) legacySelect.value = mood;
+  if (target) {
+    target.checked = true;
+    if (legacyMoodSelect) legacyMoodSelect.value = mood;
   }
 }
 
 function clearMoodRadio(): void {
-  form.querySelectorAll<HTMLInputElement>('input[name="mood"]').forEach((r) => {
-    r.checked = false;
-  });
-  const legacySelect = document.getElementById(
-    "mood",
-  ) as HTMLSelectElement | null;
-  if (legacySelect) legacySelect.value = Mood.HAPPY;
+  // Always reset to Happy so the picker has a visible default after submit
+  setMoodRadioValue(Mood.HAPPY);
 }
 
-// --- Public form API ---
+// Sync radio changes → hidden select (kept for any external listeners)
+function bindMoodRadioSync(): void {
+  form
+    .querySelectorAll<HTMLInputElement>('input[name="mood"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", () => {
+        if (legacyMoodSelect) legacyMoodSelect.value = radio.value;
+      });
+    });
+}
+
+// Filter chips
+
+function bindFilterChips(): void {
+  const chips = document.querySelectorAll<HTMLButtonElement>(".chip");
+
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chips.forEach((c) => c.classList.remove("chip--active"));
+      chip.classList.add("chip--active");
+      filterSelect.value = chip.dataset.mood ?? "all";
+      filterSelect.dispatchEvent(new Event("change"));
+    });
+  });
+}
+
+// Public form API
 
 export function clearForm(): void {
   titleInput.value = "";
@@ -82,7 +155,7 @@ export function getFormData(): {
   return { title, content, mood };
 }
 
-// --- Edit mode ---
+// Edit mode
 
 let editingId: string | null = null;
 
@@ -98,7 +171,15 @@ export function getEditingId(): string | null {
   return editingId;
 }
 
-// --- Render entries ---
+// Render entries
+
+const MOOD_EMOJI: Record<Mood, string> = {
+  [Mood.HAPPY]: "😊",
+  [Mood.SAD]: "😔",
+  [Mood.MOTIVATED]: "💪",
+  [Mood.STRESSED]: "😰",
+  [Mood.CALM]: "😌",
+};
 
 export function renderEntries(
   entries: JournalEntry[],
@@ -113,14 +194,6 @@ export function renderEntries(
 
   if (emptyState) emptyState.hidden = true;
 
-  const moodEmoji: Record<Mood, string> = {
-    [Mood.HAPPY]: "😊",
-    [Mood.SAD]: "😔",
-    [Mood.MOTIVATED]: "💪",
-    [Mood.STRESSED]: "😰",
-    [Mood.CALM]: "😌",
-  };
-
   entriesContainer.innerHTML = entries
     .map(
       (entry) => `
@@ -128,7 +201,7 @@ export function renderEntries(
         <div class="entry-header">
           <h3>${escapeHtml(entry.title)}</h3>
           <span class="mood-badge ${entry.mood}">
-            ${moodEmoji[entry.mood]} ${entry.mood}
+            ${MOOD_EMOJI[entry.mood]} ${entry.mood}
           </span>
         </div>
         <p class="entry-content">${escapeHtml(entry.content)}</p>
@@ -139,30 +212,32 @@ export function renderEntries(
             <button class="delete-btn" data-id="${entry.id}">Delete</button>
           </div>
         </div>
-      </div>
-    `,
+      </div>`,
     )
     .join("");
 
-  // Attach event listeners
-  document.querySelectorAll(".edit-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const id = (e.currentTarget as HTMLElement).dataset.id;
-      if (id) onEdit(id);
+  entriesContainer
+    .querySelectorAll<HTMLButtonElement>(".edit-btn")
+    .forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (id) onEdit(id);
+      });
     });
-  });
 
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const id = (e.currentTarget as HTMLElement).dataset.id;
-      if (id && confirm("Are you sure you want to delete this entry?")) {
-        onDelete(id);
-      }
+  entriesContainer
+    .querySelectorAll<HTMLButtonElement>(".delete-btn")
+    .forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (id && confirm("Are you sure you want to delete this entry?")) {
+          onDelete(id);
+        }
+      });
     });
-  });
 }
 
-// --- Event binders ---
+// Event binders
 
 export function bindFormSubmit(
   handler: (entry: { title: string; content: string; mood: Mood }) => void,
@@ -170,7 +245,10 @@ export function bindFormSubmit(
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const data = getFormData();
-    if (data) handler(data);
+    if (data) {
+      handler(data);
+      showToast("Entry saved ✓");
+    }
   });
 }
 
@@ -181,7 +259,16 @@ export function bindFilterChange(handler: (mood: Mood | null) => void): void {
   });
 }
 
-// --- XSS protection ---
+// Init — call once from journal.ts
+
+export function initUI(): void {
+  initTheme();
+  bindMoodRadioSync();
+  bindFilterChips();
+}
+
+// XSS protection
+
 function escapeHtml(str: string): string {
   return str.replace(/[&<>"']/g, (m) => {
     switch (m) {

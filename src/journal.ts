@@ -10,6 +10,7 @@ import {
   getEditingId,
   bindFormSubmit,
   bindFilterChange,
+  initUI,
 } from "./ui.js";
 
 // ---------- Generic utility ----------
@@ -53,8 +54,7 @@ export function updateEntry(
   if (index === -1) return;
 
   // Fixed: was accidentally commented out, causing edits to be silently dropped
-
-  entries[index] = { ...entries[index], ...updates };
+  entries[index] = { ...entries[index], ...updates } as JournalEntry;
   saveEntries(entries);
   refreshUI();
 }
@@ -115,6 +115,7 @@ function handleFormSubmit(data: {
 
 // ---------- Initialization ----------
 export function init(): void {
+  initUI();
   entries = loadEntries();
   refreshUI();
   bindFormSubmit(handleFormSubmit);
